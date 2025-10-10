@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -124,6 +125,7 @@ const templates = [
 ];
 
 export function Templates() {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -141,6 +143,26 @@ export function Templates() {
   const getCategoryIcon = (categoryId: string) => {
     const category = categories.find(cat => cat.id === categoryId);
     return category?.icon || BookOpen;
+  };
+
+  const handleUseTemplate = (template: typeof templates[0]) => {
+    // Map category to output type
+    const outputTypeMap: Record<string, string> = {
+      writing: "creative",
+      coding: "code",
+      marketing: "marketing",
+      research: "analysis",
+      image: "creative",
+      business: "text"
+    };
+
+    navigate("/wizard", {
+      state: {
+        goal: template.title,
+        context: `${template.description}\n\nTags: ${template.tags.join(", ")}`,
+        outputType: outputTypeMap[template.category] || "text"
+      }
+    });
   };
 
   return (
@@ -223,7 +245,7 @@ export function Templates() {
                           <Eye className="h-3 w-3" />
                           {template.uses.toLocaleString()} uses
                         </div>
-                        <Button size="sm" variant="default">
+                        <Button size="sm" variant="default" onClick={() => handleUseTemplate(template)}>
                           Use Template
                         </Button>
                       </div>
@@ -355,7 +377,7 @@ export function Templates() {
                               {Math.floor(template.uses * 0.1)}
                             </div>
                           </div>
-                          <Button size="sm" variant="default">
+                          <Button size="sm" variant="default" onClick={() => handleUseTemplate(template)}>
                             Use Template
                           </Button>
                         </div>

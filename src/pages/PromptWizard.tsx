@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -79,6 +80,7 @@ const lengths = [
 
 export function PromptWizard() {
   const { toast } = useToast();
+  const location = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPrompt, setGeneratedPrompt] = useState<string>("");
@@ -92,6 +94,24 @@ export function PromptWizard() {
     length: "medium",
     additionalRequirements: ""
   });
+
+  // Pre-fill wizard data from template if passed via navigation
+  useEffect(() => {
+    if (location.state) {
+      const templateData = location.state as Partial<WizardData>;
+      setWizardData(prev => ({
+        ...prev,
+        ...templateData
+      }));
+      
+      if (templateData.goal || templateData.context || templateData.outputType) {
+        toast({
+          title: "Template Loaded",
+          description: "The wizard has been pre-filled with template data. You can modify it as needed."
+        });
+      }
+    }
+  }, [location.state, toast]);
 
   const progress = (currentStep / steps.length) * 100;
 
