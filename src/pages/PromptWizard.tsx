@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -16,7 +18,9 @@ import {
   FileOutput, 
   Brain,
   Sparkles,
-  CheckCircle
+  CheckCircle,
+  Copy,
+  Loader2
 } from "lucide-react";
 
 interface WizardData {
@@ -50,12 +54,9 @@ const outputTypes = [
 ];
 
 const aiModels = [
-  { value: "gpt-4", label: "GPT-4" },
-  { value: "gpt-3.5", label: "GPT-3.5 Turbo" },
-  { value: "claude", label: "Claude" },
-  { value: "gemini", label: "Gemini" },
-  { value: "llama", label: "Llama 2" },
-  { value: "generic", label: "Generic/Any Model" }
+  { value: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro - Best for complex reasoning" },
+  { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash - Balanced & fast (Recommended)" },
+  { value: "google/gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite - Fastest & most efficient" }
 ];
 
 const tones = [
@@ -77,15 +78,18 @@ const lengths = [
 ];
 
 export function PromptWizard() {
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedPrompt, setGeneratedPrompt] = useState<string>("");
   const [wizardData, setWizardData] = useState<WizardData>({
     goal: "",
     context: "",
     audience: "",
     outputType: "",
-    model: "",
-    tone: "",
-    length: "",
+    model: "google/gemini-2.5-flash",
+    tone: "professional",
+    length: "medium",
     additionalRequirements: ""
   });
 
@@ -107,10 +111,80 @@ export function PromptWizard() {
     }
   };
 
-  const generatePrompt = () => {
-    // In a real app, this would call an API to generate the optimized prompt
-    console.log("Generating prompt with data:", wizardData);
-    // Navigate to prompt output page
+  const generatePrompt = async () => {
+    setIsGenerating(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-prompt", {
+        body: {
+          goal: wizardData.goal,
+          context: wizardData.context,
+          audience: wizardData.audience,
+          outputType: wizardData.outputType,
+          aiModel: wizardData.model,
+          tone: wizardData.tone,
+          length: wizardData.length
+        }
+      });
+
+      if (error) {
+        console.error("Error generating prompt:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to generate prompt. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (data?.prompt) {
+        setGeneratedPrompt(data.prompt);
+        toast({
+          title: "Success!",
+          description: "Your optimized prompt has been generated."
+        });
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedPrompt);
+      toast({
+        title: "Copied!",
+        description: "Prompt copied to clipboard."
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to copy to clipboard.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const resetWizard = () => {
+    setCurrentStep(1);
+    setGeneratedPrompt("");
+    setWizardData({
+      goal: "",
+      context: "",
+      audience: "",
+      outputType: "",
+      model: "google/gemini-2.5-flash",
+      tone: "professional",
+      length: "medium",
+      additionalRequirements: ""
+    });
   };
 
   const renderStepContent = () => {
@@ -281,62 +355,101 @@ export function PromptWizard() {
       case 5:
         return (
           <div className="space-y-6">
-            <div className="text-center mb-6">
-              <CheckCircle className="h-12 w-12 text-success mx-auto mb-4" />
-              <h3 className="text-xl font-semibold">Review Your Prompt Configuration</h3>
-              <p className="text-muted-foreground">
-                Verify the details below before generating your optimized prompt.
-              </p>
-            </div>
+            {!generatedPrompt ? (
+              <>
+                <div className="text-center mb-6">
+                  <CheckCircle className="h-12 w-12 text-success mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold">Review Your Prompt Configuration</h3>
+                  <p className="text-muted-foreground">
+                    Verify the details below before generating your optimized prompt.
+                  </p>
+                </div>
 
-            <div className="space-y-4">
-              <div className="p-4 rounded-lg bg-muted/50">
-                <h4 className="font-medium text-foreground mb-2">Goal</h4>
-                <p className="text-sm text-muted-foreground">{wizardData.goal || "Not specified"}</p>
+                <div className="space-y-4">
+                  <div className="p-4 rounded-lg bg-muted/50">
+                    <h4 className="font-medium text-foreground mb-2">Goal</h4>
+                    <p className="text-sm text-muted-foreground">{wizardData.goal || "Not specified"}</p>
+                  </div>
+
+                  {wizardData.context && (
+                    <div className="p-4 rounded-lg bg-muted/50">
+                      <h4 className="font-medium text-foreground mb-2">Context</h4>
+                      <p className="text-sm text-muted-foreground">{wizardData.context}</p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-lg bg-muted/50">
+                      <h4 className="font-medium text-foreground mb-2">Audience</h4>
+                      <p className="text-sm text-muted-foreground">{wizardData.audience || "Not specified"}</p>
+                    </div>
+
+                    <div className="p-4 rounded-lg bg-muted/50">
+                      <h4 className="font-medium text-foreground mb-2">Output Type</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {outputTypes.find(t => t.value === wizardData.outputType)?.label || "Not specified"}
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-lg bg-muted/50">
+                      <h4 className="font-medium text-foreground mb-2">AI Model</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {aiModels.find(m => m.value === wizardData.model)?.label || "Not specified"}
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-lg bg-muted/50">
+                      <h4 className="font-medium text-foreground mb-2">Tone & Length</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {tones.find(t => t.value === wizardData.tone)?.label || "Default"} • {lengths.find(l => l.value === wizardData.length)?.label || "Variable"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {wizardData.additionalRequirements && (
+                    <div className="p-4 rounded-lg bg-muted/50">
+                      <h4 className="font-medium text-foreground mb-2">Additional Requirements</h4>
+                      <p className="text-sm text-muted-foreground">{wizardData.additionalRequirements}</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="space-y-6">
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center justify-center p-3 rounded-xl bg-success/10 mb-4">
+                    <Sparkles className="h-8 w-8 text-success" />
+                  </div>
+                  <h3 className="text-xl font-semibold">Your Optimized Prompt</h3>
+                  <p className="text-muted-foreground">
+                    Generated using {aiModels.find(m => m.value === wizardData.model)?.label}
+                  </p>
+                </div>
+
+                <div className="relative">
+                  <div className="p-6 rounded-lg bg-muted/50 border-2 border-primary/20">
+                    <div className="prose prose-sm max-w-none">
+                      <p className="text-foreground whitespace-pre-wrap">{generatedPrompt}</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="absolute top-4 right-4"
+                    onClick={copyToClipboard}
+                  >
+                    <Copy className="h-4 w-4" />
+                    Copy
+                  </Button>
+                </div>
+
+                <div className="flex gap-3 justify-center">
+                  <Button variant="outline" onClick={resetWizard}>
+                    Create Another
+                  </Button>
+                </div>
               </div>
-
-              {wizardData.context && (
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <h4 className="font-medium text-foreground mb-2">Context</h4>
-                  <p className="text-sm text-muted-foreground">{wizardData.context}</p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <h4 className="font-medium text-foreground mb-2">Audience</h4>
-                  <p className="text-sm text-muted-foreground">{wizardData.audience || "Not specified"}</p>
-                </div>
-
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <h4 className="font-medium text-foreground mb-2">Output Type</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {outputTypes.find(t => t.value === wizardData.outputType)?.label || "Not specified"}
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <h4 className="font-medium text-foreground mb-2">AI Model</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {aiModels.find(m => m.value === wizardData.model)?.label || "Not specified"}
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <h4 className="font-medium text-foreground mb-2">Tone & Length</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {tones.find(t => t.value === wizardData.tone)?.label || "Default"} • {lengths.find(l => l.value === wizardData.length)?.label || "Variable"}
-                  </p>
-                </div>
-              </div>
-
-              {wizardData.additionalRequirements && (
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <h4 className="font-medium text-foreground mb-2">Additional Requirements</h4>
-                  <p className="text-sm text-muted-foreground">{wizardData.additionalRequirements}</p>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         );
 
@@ -457,16 +570,25 @@ export function PromptWizard() {
               Next
               <ArrowRight className="h-4 w-4" />
             </Button>
-          ) : (
+          ) : !generatedPrompt ? (
             <Button
               onClick={generatePrompt}
-              disabled={!isStepValid()}
+              disabled={!isStepValid() || isGenerating}
               variant="hero"
             >
-              <Sparkles className="h-4 w-4" />
-              Generate Prompt
+              {isGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Generate Prompt
+                </>
+              )}
             </Button>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
