@@ -2,3 +2,6 @@ project_id = "vcoywesfqwxxljgiomfc"
 
 [functions.generate-prompt]
 verify_jwt = false
+
+[functions.rewrite-prompt]
+verify_jwt = false
