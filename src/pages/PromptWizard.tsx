@@ -21,7 +21,8 @@ import {
   Sparkles,
   CheckCircle,
   Copy,
-  Loader2
+  Loader2,
+  Save
 } from "lucide-react";
 
 interface WizardData {
@@ -83,6 +84,7 @@ export function PromptWizard() {
   const location = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [generatedPrompt, setGeneratedPrompt] = useState<string>("");
   const [wizardData, setWizardData] = useState<WizardData>({
     goal: "",
@@ -189,6 +191,52 @@ export function PromptWizard() {
         description: "Failed to copy to clipboard.",
         variant: "destructive"
       });
+    }
+  };
+
+  const savePrompt = async () => {
+    setIsSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to save prompts.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const { error } = await supabase.from("prompts").insert({
+        user_id: user.id,
+        title: wizardData.goal.substring(0, 100) || "Generated Prompt",
+        content: generatedPrompt,
+        prompt_type: "wizard",
+        metadata: {
+          audience: wizardData.audience,
+          outputType: wizardData.outputType,
+          model: wizardData.model,
+          tone: wizardData.tone,
+          length: wizardData.length
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Saved!",
+        description: "Prompt saved to your collection."
+      });
+    } catch (err) {
+      console.error('Error saving prompt:', err);
+      toast({
+        title: "Error",
+        description: "Failed to save prompt. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -452,18 +500,26 @@ export function PromptWizard() {
                       <p className="text-foreground whitespace-pre-wrap">{generatedPrompt}</p>
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="absolute top-4 right-4"
-                    onClick={copyToClipboard}
-                  >
-                    <Copy className="h-4 w-4" />
-                    Copy
-                  </Button>
                 </div>
 
                 <div className="flex gap-3 justify-center">
+                  <Button variant="outline" onClick={copyToClipboard}>
+                    <Copy className="h-4 w-4" />
+                    Copy
+                  </Button>
+                  <Button onClick={savePrompt} disabled={isSaving}>
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        Save to My Prompts
+                      </>
+                    )}
+                  </Button>
                   <Button variant="outline" onClick={resetWizard}>
                     Create Another
                   </Button>

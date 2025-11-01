@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Wand2, Copy, RefreshCw, ArrowRight } from "lucide-react";
+import { Wand2, Copy, RefreshCw, ArrowRight, Save, Loader2 } from "lucide-react";
 
 export function PromptRewriter() {
   const { toast } = useToast();
@@ -18,6 +18,7 @@ export function PromptRewriter() {
   const [outputFormat, setOutputFormat] = useState("detailed");
   const [rewrittenPrompt, setRewrittenPrompt] = useState("");
   const [isRewriting, setIsRewriting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const roles = [
     { value: "general", label: "General Purpose" },
@@ -119,6 +120,51 @@ export function PromptRewriter() {
     setTone("professional");
     setOutputFormat("detailed");
     setRewrittenPrompt("");
+  };
+
+  const savePrompt = async () => {
+    setIsSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to save prompts.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const { error } = await supabase.from("prompts").insert({
+        user_id: user.id,
+        title: originalPrompt.substring(0, 100) || "Rewritten Prompt",
+        content: rewrittenPrompt,
+        prompt_type: "rewriter",
+        metadata: {
+          originalPrompt: originalPrompt,
+          role: role,
+          tone: tone,
+          outputFormat: outputFormat
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Saved!",
+        description: "Prompt saved to your collection."
+      });
+    } catch (err) {
+      console.error('Error saving prompt:', err);
+      toast({
+        title: "Error",
+        description: "Failed to save prompt. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -250,33 +296,52 @@ export function PromptRewriter() {
             </CardHeader>
             <CardContent>
               {rewrittenPrompt ? (
-                <div className="space-y-4">
-                  <div className="relative">
-                    <Textarea
-                      value={rewrittenPrompt}
-                      readOnly
-                      className="min-h-[400px] bg-muted/50"
-                    />
-                    <Button
-                      onClick={() => handleCopy(rewrittenPrompt)}
-                      size="sm"
-                      variant="secondary"
-                      className="absolute top-2 right-2"
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy
-                    </Button>
-                  </div>
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <Textarea
+                        value={rewrittenPrompt}
+                        readOnly
+                        className="min-h-[400px] bg-muted/50"
+                      />
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        <Button
+                          onClick={() => handleCopy(rewrittenPrompt)}
+                          size="sm"
+                          variant="secondary"
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy
+                        </Button>
+                        <Button
+                          onClick={savePrompt}
+                          size="sm"
+                          variant="default"
+                          disabled={isSaving}
+                        >
+                          {isSaving ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-4 w-4 mr-2" />
+                              Save
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
 
-                  <div className="flex items-center justify-between text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
-                    <div>
-                      <span className="font-medium">Original:</span> {originalPrompt.length} chars
-                    </div>
-                    <div>
-                      <span className="font-medium">Rewritten:</span> {rewrittenPrompt.length} chars
+                    <div className="flex items-center justify-between text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
+                      <div>
+                        <span className="font-medium">Original:</span> {originalPrompt.length} chars
+                      </div>
+                      <div>
+                        <span className="font-medium">Rewritten:</span> {rewrittenPrompt.length} chars
+                      </div>
                     </div>
                   </div>
-                </div>
               ) : (
                 <div className="flex items-center justify-center min-h-[400px] text-center">
                   <div className="space-y-4">
