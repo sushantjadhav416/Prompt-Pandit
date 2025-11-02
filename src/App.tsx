@@ -10,6 +10,8 @@ import { Templates } from "./pages/Templates";
 import { PromptRewriter } from "./pages/PromptRewriter";
 import { Auth } from "./pages/Auth";
 import { MyPrompts } from "./pages/MyPrompts";
+import { Documentation } from "./pages/Documentation";
+import { Guides } from "./pages/Guides";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
@@ -26,6 +28,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/documentation" element={<Documentation />} />
+            <Route path="/guides" element={<Guides />} />
             <Route path="/wizard" element={<ProtectedRoute><PromptWizard /></ProtectedRoute>} />
             <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
             <Route path="/rewriter" element={<ProtectedRoute><PromptRewriter /></ProtectedRoute>} />

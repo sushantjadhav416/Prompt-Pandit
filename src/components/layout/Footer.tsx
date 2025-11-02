@@ -8,17 +8,9 @@ const navigation = {
     { name: "Rewriter", href: "/rewriter" },
     { name: "My Prompts", href: "/my-prompts" },
   ],
-  company: [
-    { name: "About", href: "#" },
-    { name: "Blog", href: "#" },
-    { name: "Careers", href: "#" },
-    { name: "Contact", href: "#" },
-  ],
   resources: [
-    { name: "Documentation", href: "#" },
-    { name: "Guides", href: "#" },
-    { name: "Help Center", href: "#" },
-    { name: "API Reference", href: "#" },
+    { name: "Documentation", href: "/documentation" },
+    { name: "Guides", href: "/guides" },
   ],
   legal: [
     { name: "Privacy", href: "#" },
@@ -31,7 +23,7 @@ export function Footer() {
   return (
     <footer className="bg-muted/30 border-t border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand */}
           <div className="space-y-4">
             <Link to="/" className="flex items-center space-x-2">
@@ -79,35 +71,18 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Company */}
-          <div>
-            <h3 className="text-sm font-semibold text-foreground mb-4">Company</h3>
-            <ul className="space-y-3">
-              {navigation.company.map((item) => (
-                <li key={item.name}>
-                  <a
-                    href={item.href}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {item.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
           {/* Resources */}
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-4">Resources</h3>
             <ul className="space-y-3">
               {navigation.resources.map((item) => (
                 <li key={item.name}>
-                  <a
-                    href={item.href}
+                  <Link
+                    to={item.href}
                     className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
                     {item.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
