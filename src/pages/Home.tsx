@@ -55,13 +55,6 @@ const features = [
   }
 ];
 
-const stats = [
-  { label: "Prompts Generated", value: "50,000+" },
-  { label: "Happy Users", value: "5,000+" },
-  { label: "Templates Available", value: "200+" },
-  { label: "Success Rate", value: "95%" }
-];
-
 export function Home() {
   return (
     <div className="min-h-screen">
@@ -105,16 +98,6 @@ export function Home() {
                   Browse Templates
                 </Link>
               </Button>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-4xl mx-auto">
-              {stats.map((stat, index) => (
-                <div key={stat.label} className="text-center animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
-                  <div className="text-2xl lg:text-3xl font-bold text-primary">{stat.value}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
