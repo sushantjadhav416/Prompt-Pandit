@@ -46,6 +46,7 @@ export function Auth() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showUpdatePassword, setShowUpdatePassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
 
   // Signup form
   const [signupData, setSignupData] = useState({
@@ -69,33 +70,36 @@ export function Auth() {
 
   // Check if user is already logged in and handle password recovery
   useEffect(() => {
+    // Check for password recovery hash FIRST
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = hashParams.get('type');
+    
+    if (type === 'recovery') {
+      setIsRecoveryMode(true);
+      setShowUpdatePassword(true);
+      return; // Don't check session or set up listeners yet
+    }
+
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      if (session && !isRecoveryMode) {
         navigate("/");
       }
     };
     checkUser();
 
-    // Check for password recovery hash
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const type = hashParams.get('type');
-    
-    if (type === 'recovery') {
-      setShowUpdatePassword(true);
-    }
-
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
+        setIsRecoveryMode(true);
         setShowUpdatePassword(true);
-      } else if (session && event === "SIGNED_IN") {
+      } else if (session && event === "SIGNED_IN" && !isRecoveryMode) {
         navigate("/");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, isRecoveryMode]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -259,8 +263,12 @@ export function Auth() {
         description: "You can now login with your new password",
       });
       setShowUpdatePassword(false);
+      setIsRecoveryMode(false);
       setUpdatePasswordData({ password: "", confirmPassword: "" });
-      navigate("/");
+      
+      // Sign out after password update to force re-login
+      await supabase.auth.signOut();
+      navigate("/auth");
     } catch (err) {
       if (err instanceof z.ZodError) {
         setError(err.errors[0].message);
