@@ -71,6 +71,45 @@ export type Database = {
         }
         Relationships: []
       }
+      templates: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          featured: boolean | null
+          id: string
+          rating: number | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          uses: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          featured?: boolean | null
+          id?: string
+          rating?: number | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          uses?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          featured?: boolean | null
+          id?: string
+          rating?: number | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          uses?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
