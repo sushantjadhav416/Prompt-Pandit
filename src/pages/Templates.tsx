@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,116 +20,74 @@ import {
   BookOpen,
   Briefcase,
   Heart,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from "lucide-react";
 
-const categories = [
-  { id: "all", name: "All Templates", icon: BookOpen, count: 47 },
-  { id: "writing", name: "Writing", icon: PenTool, count: 12 },
-  { id: "coding", name: "Coding", icon: Code, count: 8 },
-  { id: "marketing", name: "Marketing", icon: Megaphone, count: 10 },
-  { id: "research", name: "Research", icon: FileSearch, count: 7 },
-  { id: "image", name: "Image Generation", icon: Image, count: 6 },
-  { id: "business", name: "Business", icon: Briefcase, count: 4 }
+const categoryDefinitions = [
+  { id: "all", name: "All Templates", icon: BookOpen },
+  { id: "writing", name: "Writing", icon: PenTool },
+  { id: "coding", name: "Coding", icon: Code },
+  { id: "marketing", name: "Marketing", icon: Megaphone },
+  { id: "research", name: "Research", icon: FileSearch },
+  { id: "image", name: "Image Generation", icon: Image },
+  { id: "business", name: "Business", icon: Briefcase }
 ];
 
-const templates = [
-  {
-    id: 1,
-    title: "Blog Post Writer",
-    description: "Create engaging blog posts with proper structure, SEO optimization, and compelling content.",
-    category: "writing",
-    rating: 4.8,
-    uses: 2847,
-    tags: ["SEO", "Content", "Blog"],
-    featured: true
-  },
-  {
-    id: 2,
-    title: "Python Code Generator",
-    description: "Generate clean, documented Python code for data analysis, web development, and automation.",
-    category: "coding",
-    rating: 4.9,
-    uses: 1923,
-    tags: ["Python", "Programming", "Documentation"],
-    featured: true
-  },
-  {
-    id: 3,
-    title: "Product Description",
-    description: "Write compelling product descriptions that convert visitors into customers.",
-    category: "marketing",
-    rating: 4.7,
-    uses: 3241,
-    tags: ["E-commerce", "Sales", "Conversion"],
-    featured: false
-  },
-  {
-    id: 4,
-    title: "Research Summary",
-    description: "Summarize complex research papers and academic content into digestible insights.",
-    category: "research",
-    rating: 4.6,
-    uses: 892,
-    tags: ["Academic", "Analysis", "Summary"],
-    featured: false
-  },
-  {
-    id: 5,
-    title: "Social Media Posts",
-    description: "Create engaging social media content optimized for different platforms.",
-    category: "marketing",
-    rating: 4.8,
-    uses: 4156,
-    tags: ["Social", "Engagement", "Viral"],
-    featured: true
-  },
-  {
-    id: 6,
-    title: "Email Campaign",
-    description: "Design effective email campaigns with subject lines, body content, and CTAs.",
-    category: "marketing",
-    rating: 4.5,
-    uses: 1687,
-    tags: ["Email", "Campaign", "CTA"],
-    featured: false
-  },
-  {
-    id: 7,
-    title: "Creative Story Writer",
-    description: "Generate creative stories, character development, and narrative structures.",
-    category: "writing",
-    rating: 4.7,
-    uses: 2134,
-    tags: ["Creative", "Fiction", "Narrative"],
-    featured: false
-  },
-  {
-    id: 8,
-    title: "Code Review Assistant",
-    description: "Analyze code quality, suggest improvements, and identify potential issues.",
-    category: "coding",
-    rating: 4.8,
-    uses: 1456,
-    tags: ["Review", "Quality", "Debugging"],
-    featured: false
-  },
-  {
-    id: 9,
-    title: "AI Art Prompt",
-    description: "Create detailed prompts for AI image generators like DALL-E, Midjourney, and Stable Diffusion.",
-    category: "image",
-    rating: 4.9,
-    uses: 5678,
-    tags: ["AI Art", "Visual", "Creative"],
-    featured: true
-  }
-];
+type Template = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  rating: number;
+  uses: number;
+  tags: string[];
+  featured: boolean;
+};
 
 export function Templates() {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Fetch templates from backend
+  const { data: templates = [], isLoading: templatesLoading } = useQuery({
+    queryKey: ['templates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('templates')
+        .select('*')
+        .order('uses', { ascending: false });
+      
+      if (error) throw error;
+      return data as Template[];
+    }
+  });
+
+  // Fetch category counts dynamically
+  const { data: categoryCounts = {} } = useQuery({
+    queryKey: ['category-counts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('templates')
+        .select('category');
+      
+      if (error) throw error;
+      
+      const counts: Record<string, number> = { all: data.length };
+      data.forEach(item => {
+        counts[item.category] = (counts[item.category] || 0) + 1;
+      });
+      
+      return counts;
+    }
+  });
+
+  // Build categories with dynamic counts
+  const categories = categoryDefinitions.map(cat => ({
+    ...cat,
+    count: categoryCounts[cat.id] || 0
+  }));
 
   const filteredTemplates = templates.filter(template => {
     const matchesCategory = selectedCategory === "all" || template.category === selectedCategory;
@@ -141,11 +101,11 @@ export function Templates() {
   const featuredTemplates = templates.filter(template => template.featured);
 
   const getCategoryIcon = (categoryId: string) => {
-    const category = categories.find(cat => cat.id === categoryId);
+    const category = categoryDefinitions.find(cat => cat.id === categoryId);
     return category?.icon || BookOpen;
   };
 
-  const handleUseTemplate = (template: typeof templates[0]) => {
+  const handleUseTemplate = (template: Template) => {
     // Map category to output type
     const outputTypeMap: Record<string, string> = {
       writing: "creative",
@@ -164,6 +124,17 @@ export function Templates() {
       }
     });
   };
+
+  if (templatesLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading templates...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background py-8">
