@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -46,8 +47,18 @@ const categoryConfig = [
 
 export function Templates() {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Get current user
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id || null);
+    });
+  }, []);
 
   // Fetch templates from backend
   const { data: templates = [], isLoading, error } = useQuery({
@@ -60,6 +71,72 @@ export function Templates() {
       
       if (error) throw error;
       return data as Template[];
+    }
+  });
+
+  // Fetch user ratings
+  const { data: userRatings = [] } = useQuery({
+    queryKey: ['template-ratings', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from('template_ratings')
+        .select('template_id, rating')
+        .eq('user_id', userId);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId
+  });
+
+  // Mutation to rate a template
+  const rateMutation = useMutation({
+    mutationFn: async ({ templateId, rating }: { templateId: string; rating: number }) => {
+      if (!userId) {
+        throw new Error('Must be logged in to rate');
+      }
+
+      const { error } = await supabase
+        .from('template_ratings')
+        .upsert({
+          template_id: templateId,
+          user_id: userId,
+          rating
+        }, {
+          onConflict: 'template_id,user_id'
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
+      queryClient.invalidateQueries({ queryKey: ['template-ratings', userId] });
+      toast({
+        title: "Rating submitted",
+        description: "Thank you for rating this template!"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to rate",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Mutation to increment uses
+  const incrementUsesMutation = useMutation({
+    mutationFn: async (templateId: string) => {
+      const { error } = await supabase.rpc('increment_template_uses', {
+        template_id: templateId
+      });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
     }
   });
 
@@ -112,6 +189,9 @@ export function Templates() {
   };
 
   const handleUseTemplate = (template: Template) => {
+    // Increment uses count
+    incrementUsesMutation.mutate(template.id);
+
     // Map category to output type
     const outputTypeMap: Record<string, string> = {
       writing: "creative",
@@ -129,6 +209,22 @@ export function Templates() {
         outputType: outputTypeMap[template.category] || "text"
       }
     });
+  };
+
+  const handleRateTemplate = (templateId: string, rating: number) => {
+    if (!userId) {
+      toast({
+        title: "Login required",
+        description: "Please log in to rate templates",
+        variant: "destructive"
+      });
+      return;
+    }
+    rateMutation.mutate({ templateId, rating });
+  };
+
+  const getUserRating = (templateId: string) => {
+    return userRatings.find(r => r.template_id === templateId)?.rating || 0;
   };
 
   if (error) {
@@ -213,9 +309,33 @@ export function Templates() {
                               Featured
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Star className="h-3 w-3 fill-current text-yellow-500" />
-                            {template.rating}
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => {
+                              const userRating = getUserRating(template.id);
+                              return (
+                                <button
+                                  key={star}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRateTemplate(template.id, star);
+                                  }}
+                                  className="transition-colors hover:scale-110"
+                                >
+                                  <Star
+                                    className={`h-4 w-4 ${
+                                      star <= userRating
+                                        ? "fill-yellow-500 text-yellow-500"
+                                        : star <= Math.round(template.rating)
+                                        ? "fill-yellow-500/30 text-yellow-500/30"
+                                        : "text-muted-foreground"
+                                    }`}
+                                  />
+                                </button>
+                              );
+                            })}
+                            <span className="text-xs text-muted-foreground ml-1">
+                              {template.rating.toFixed(1)}
+                            </span>
                           </div>
                         </div>
                         <CardTitle className="text-lg leading-tight">
@@ -363,9 +483,33 @@ export function Templates() {
                               </Badge>
                             )}
                           </div>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Star className="h-3 w-3 fill-current text-yellow-500" />
-                            {template.rating}
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => {
+                              const userRating = getUserRating(template.id);
+                              return (
+                                <button
+                                  key={star}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRateTemplate(template.id, star);
+                                  }}
+                                  className="transition-colors hover:scale-110"
+                                >
+                                  <Star
+                                    className={`h-4 w-4 ${
+                                      star <= userRating
+                                        ? "fill-yellow-500 text-yellow-500"
+                                        : star <= Math.round(template.rating)
+                                        ? "fill-yellow-500/30 text-yellow-500/30"
+                                        : "text-muted-foreground"
+                                    }`}
+                                  />
+                                </button>
+                              );
+                            })}
+                            <span className="text-xs text-muted-foreground ml-1">
+                              {template.rating.toFixed(1)}
+                            </span>
                           </div>
                         </div>
                         <CardTitle className="text-lg leading-tight">

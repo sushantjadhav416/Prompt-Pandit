@@ -71,6 +71,41 @@ export type Database = {
         }
         Relationships: []
       }
+      template_ratings: {
+        Row: {
+          created_at: string
+          id: string
+          rating: number
+          template_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rating: number
+          template_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rating?: number
+          template_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_ratings_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       templates: {
         Row: {
           category: string
@@ -142,6 +177,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_template_uses: {
+        Args: { template_id: string }
+        Returns: undefined
       }
     }
     Enums: {
