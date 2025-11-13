@@ -94,7 +94,11 @@ export function Templates() {
                            template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            template.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
       
-      return matchesCategory && matchesSearch;
+      // Exclude featured templates from main grid when featured section is visible
+      const showingFeaturedSection = selectedCategory === "all" && !searchQuery;
+      const excludeFeatured = showingFeaturedSection && template.featured;
+      
+      return matchesCategory && matchesSearch && !excludeFeatured;
     });
   }, [templates, selectedCategory, searchQuery]);
 
