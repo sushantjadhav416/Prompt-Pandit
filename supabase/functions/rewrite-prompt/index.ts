@@ -6,13 +6,54 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Validation helper
+const validateInput = (data: any) => {
+  const errors: string[] = [];
+  
+  if (!data.originalPrompt || typeof data.originalPrompt !== 'string' || data.originalPrompt.length === 0 || data.originalPrompt.length > 5000) {
+    errors.push('originalPrompt must be 1-5000 characters');
+  }
+  if (!data.role || typeof data.role !== 'string' || data.role.length === 0 || data.role.length > 200) {
+    errors.push('role must be 1-200 characters');
+  }
+  if (data.context && (typeof data.context !== 'string' || data.context.length > 2000)) {
+    errors.push('context must be max 2000 characters');
+  }
+  if (!data.tone || typeof data.tone !== 'string' || data.tone.length === 0 || data.tone.length > 100) {
+    errors.push('tone must be 1-100 characters');
+  }
+  if (!data.outputFormat || typeof data.outputFormat !== 'string' || data.outputFormat.length === 0 || data.outputFormat.length > 100) {
+    errors.push('outputFormat must be 1-100 characters');
+  }
+  
+  return errors;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { originalPrompt, role, context, tone, outputFormat } = await req.json();
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const requestData = await req.json();
+    const validationErrors = validateInput(requestData);
+    
+    if (validationErrors.length > 0) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: validationErrors }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { originalPrompt, role, context, tone, outputFormat } = requestData;
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -60,26 +101,23 @@ Please rewrite this prompt to be more effective, incorporating the role perspect
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ 
-          error: 'Rate limit exceeded. Please try again in a moment.' 
-        }), {
-          status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ 
-          error: 'Payment required. Please add credits to your workspace.' 
-        }), {
-          status: 402,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      
       const errorText = await response.text();
       console.error('AI Gateway error:', response.status, errorText);
-      throw new Error(`AI Gateway error: ${response.status}`);
+      
+      const ERROR_MESSAGES: { [key: number]: string } = {
+        429: 'Service is busy. Please try again shortly.',
+        402: 'Service unavailable. Please contact support.',
+        400: 'Invalid request. Please check your input.',
+        500: 'Service temporarily unavailable. Please try again.'
+      };
+      
+      const statusCode = response.status >= 500 ? 500 : response.status;
+      const errorMessage = ERROR_MESSAGES[response.status] || 'Unable to process request. Please try again.';
+      
+      return new Response(
+        JSON.stringify({ error: errorMessage }),
+        { status: statusCode, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const data = await response.json();
@@ -104,7 +142,7 @@ Please rewrite this prompt to be more effective, incorporating the role perspect
     console.error('Error in rewrite-prompt function:', error);
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'An unexpected error occurred' 
+        error: 'An error occurred processing your request. Please try again.' 
       }),
       { 
         status: 500,

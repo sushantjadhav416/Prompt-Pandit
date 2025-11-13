@@ -5,13 +5,60 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Validation helper
+const validateInput = (data: any) => {
+  const errors: string[] = [];
+  
+  if (!data.goal || typeof data.goal !== 'string' || data.goal.length === 0 || data.goal.length > 1000) {
+    errors.push('goal must be 1-1000 characters');
+  }
+  if (data.context && (typeof data.context !== 'string' || data.context.length > 2000)) {
+    errors.push('context must be max 2000 characters');
+  }
+  if (!data.audience || typeof data.audience !== 'string' || data.audience.length === 0 || data.audience.length > 500) {
+    errors.push('audience must be 1-500 characters');
+  }
+  if (!data.outputType || typeof data.outputType !== 'string' || data.outputType.length === 0 || data.outputType.length > 100) {
+    errors.push('outputType must be 1-100 characters');
+  }
+  if (!data.aiModel || typeof data.aiModel !== 'string' || data.aiModel.length === 0 || data.aiModel.length > 100) {
+    errors.push('aiModel must be 1-100 characters');
+  }
+  if (!data.tone || typeof data.tone !== 'string' || data.tone.length === 0 || data.tone.length > 100) {
+    errors.push('tone must be 1-100 characters');
+  }
+  if (!data.length || typeof data.length !== 'string' || data.length.length === 0 || data.length.length > 100) {
+    errors.push('length must be 1-100 characters');
+  }
+  
+  return errors;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { goal, context, audience, outputType, aiModel, tone, length } = await req.json();
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const requestData = await req.json();
+    const validationErrors = validateInput(requestData);
+    
+    if (validationErrors.length > 0) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: validationErrors }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const { goal, context, audience, outputType, aiModel, tone, length } = requestData;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -65,21 +112,20 @@ Create a complete, ready-to-use prompt that incorporates all these elements effe
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
       
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+      const ERROR_MESSAGES: { [key: number]: string } = {
+        429: 'Service is busy. Please try again shortly.',
+        402: 'Service unavailable. Please contact support.',
+        400: 'Invalid request. Please check your input.',
+        500: 'Service temporarily unavailable. Please try again.'
+      };
       
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Payment required. Please add credits to your workspace." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      throw new Error(`AI gateway error: ${response.status}`);
+      const statusCode = response.status >= 500 ? 500 : response.status;
+      const errorMessage = ERROR_MESSAGES[response.status] || 'Unable to process request. Please try again.';
+      
+      return new Response(
+        JSON.stringify({ error: errorMessage }),
+        { status: statusCode, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const data = await response.json();
@@ -106,7 +152,7 @@ Create a complete, ready-to-use prompt that incorporates all these elements effe
   } catch (error) {
     console.error("Error in generate-prompt function:", error);
     return new Response(
-      JSON.stringify({ error: error.message || "Internal server error" }),
+      JSON.stringify({ error: "An error occurred processing your request. Please try again." }),
       { 
         status: 500, 
         headers: { ...corsHeaders, "Content-Type": "application/json" } 
