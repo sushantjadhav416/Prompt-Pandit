@@ -75,7 +75,7 @@ export function Templates() {
     }
   });
 
-  // Setup realtime subscription for template updates
+  // Subscribe to realtime updates for templates
   useEffect(() => {
     const channel = supabase
       .channel('templates-changes')
@@ -89,7 +89,7 @@ export function Templates() {
         (payload) => {
           queryClient.setQueryData(['templates'], (oldData: Template[] | undefined) => {
             if (!oldData) return oldData;
-            return oldData.map(template =>
+            return oldData.map(template => 
               template.id === payload.new.id ? { ...template, ...payload.new } : template
             );
           });
@@ -192,7 +192,7 @@ export function Templates() {
       }
 
       const isLiked = userLikes.includes(templateId);
-      
+
       if (isLiked) {
         const { error } = await supabase
           .from('template_likes')
@@ -312,7 +312,7 @@ export function Templates() {
     return userRatings.find(r => r.template_id === templateId)?.rating || 0;
   };
 
-  const isTemplateeLiked = (templateId: string) => {
+  const isTemplateLiked = (templateId: string) => {
     return userLikes.includes(templateId);
   };
 
@@ -467,12 +467,12 @@ export function Templates() {
                                 e.stopPropagation();
                                 handleToggleLike(template.id);
                               }}
-                              className="flex items-center gap-1 hover:text-primary transition-colors"
+                              className="flex items-center gap-1 hover:text-foreground transition-colors"
                             >
                               <Heart 
                                 className={`h-3 w-3 ${
-                                  isTemplateeLiked(template.id) 
-                                    ? "fill-primary text-primary" 
+                                  isTemplateLiked(template.id) 
+                                    ? "fill-red-500 text-red-500" 
                                     : ""
                                 }`} 
                               />
@@ -659,12 +659,12 @@ export function Templates() {
                                 e.stopPropagation();
                                 handleToggleLike(template.id);
                               }}
-                              className="flex items-center gap-1 hover:text-primary transition-colors"
+                              className="flex items-center gap-1 hover:text-foreground transition-colors"
                             >
                               <Heart 
                                 className={`h-3 w-3 ${
-                                  isTemplateeLiked(template.id) 
-                                    ? "fill-primary text-primary" 
+                                  isTemplateLiked(template.id) 
+                                    ? "fill-red-500 text-red-500" 
                                     : ""
                                 }`} 
                               />
