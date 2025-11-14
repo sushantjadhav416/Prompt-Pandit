@@ -33,6 +33,7 @@ type Template = {
   uses: number;
   tags: string[];
   featured: boolean;
+  likes_count: number;
 };
 
 const categoryConfig = [
@@ -74,6 +75,33 @@ export function Templates() {
     }
   });
 
+  // Setup realtime subscription for template updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('templates-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'templates'
+        },
+        (payload) => {
+          queryClient.setQueryData(['templates'], (oldData: Template[] | undefined) => {
+            if (!oldData) return oldData;
+            return oldData.map(template =>
+              template.id === payload.new.id ? { ...template, ...payload.new } : template
+            );
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   // Fetch user ratings
   const { data: userRatings = [] } = useQuery({
     queryKey: ['template-ratings', userId],
@@ -86,6 +114,22 @@ export function Templates() {
       
       if (error) throw error;
       return data;
+    },
+    enabled: !!userId
+  });
+
+  // Fetch user likes
+  const { data: userLikes = [] } = useQuery({
+    queryKey: ['template-likes', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from('template_likes')
+        .select('template_id')
+        .eq('user_id', userId);
+      
+      if (error) throw error;
+      return data.map(like => like.template_id);
     },
     enabled: !!userId
   });
@@ -137,6 +181,47 @@ export function Templates() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['templates'] });
+    }
+  });
+
+  // Mutation to toggle like
+  const toggleLikeMutation = useMutation({
+    mutationFn: async (templateId: string) => {
+      if (!userId) {
+        throw new Error('Must be logged in to like');
+      }
+
+      const isLiked = userLikes.includes(templateId);
+      
+      if (isLiked) {
+        const { error } = await supabase
+          .from('template_likes')
+          .delete()
+          .eq('template_id', templateId)
+          .eq('user_id', userId);
+        
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('template_likes')
+          .insert({
+            template_id: templateId,
+            user_id: userId
+          });
+        
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
+      queryClient.invalidateQueries({ queryKey: ['template-likes', userId] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to update like",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   });
 
@@ -225,6 +310,22 @@ export function Templates() {
 
   const getUserRating = (templateId: string) => {
     return userRatings.find(r => r.template_id === templateId)?.rating || 0;
+  };
+
+  const isTemplateeLiked = (templateId: string) => {
+    return userLikes.includes(templateId);
+  };
+
+  const handleToggleLike = (templateId: string) => {
+    if (!userId) {
+      toast({
+        title: "Login required",
+        description: "Please log in to like templates",
+        variant: "destructive"
+      });
+      return;
+    }
+    toggleLikeMutation.mutate(templateId);
   };
 
   if (error) {
@@ -356,9 +457,27 @@ export function Templates() {
                         </div>
 
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Eye className="h-3 w-3" />
-                            {template.uses.toLocaleString()} uses
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Eye className="h-3 w-3" />
+                              {template.uses.toLocaleString()}
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleLike(template.id);
+                              }}
+                              className="flex items-center gap-1 hover:text-primary transition-colors"
+                            >
+                              <Heart 
+                                className={`h-3 w-3 ${
+                                  isTemplateeLiked(template.id) 
+                                    ? "fill-primary text-primary" 
+                                    : ""
+                                }`} 
+                              />
+                              {template.likes_count || 0}
+                            </button>
                           </div>
                           <Button size="sm" variant="default" onClick={() => handleUseTemplate(template)}>
                             Use Template
@@ -530,15 +649,27 @@ export function Templates() {
                         </div>
 
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <Eye className="h-3 w-3" />
                               {template.uses.toLocaleString()}
                             </div>
-                            <div className="flex items-center gap-1">
-                              <Heart className="h-3 w-3" />
-                              {Math.floor(template.uses * 0.1)}
-                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleLike(template.id);
+                              }}
+                              className="flex items-center gap-1 hover:text-primary transition-colors"
+                            >
+                              <Heart 
+                                className={`h-3 w-3 ${
+                                  isTemplateeLiked(template.id) 
+                                    ? "fill-primary text-primary" 
+                                    : ""
+                                }`} 
+                              />
+                              {template.likes_count || 0}
+                            </button>
                           </div>
                           <Button size="sm" variant="default" onClick={() => handleUseTemplate(template)}>
                             Use Template
