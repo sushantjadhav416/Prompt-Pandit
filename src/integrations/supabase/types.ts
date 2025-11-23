@@ -71,6 +71,27 @@ export type Database = {
         }
         Relationships: []
       }
+      template_likes: {
+        Row: {
+          created_at: string
+          id: string
+          template_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          template_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          template_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       template_ratings: {
         Row: {
           created_at: string
@@ -113,6 +134,7 @@ export type Database = {
           description: string
           featured: boolean | null
           id: string
+          likes_count: number | null
           rating: number | null
           tags: string[] | null
           title: string
@@ -125,6 +147,7 @@ export type Database = {
           description: string
           featured?: boolean | null
           id?: string
+          likes_count?: number | null
           rating?: number | null
           tags?: string[] | null
           title: string
@@ -137,6 +160,7 @@ export type Database = {
           description?: string
           featured?: boolean | null
           id?: string
+          likes_count?: number | null
           rating?: number | null
           tags?: string[] | null
           title?: string

@@ -11,8 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Search, 
   Filter, 
-  Star, 
-  Eye,
+  Star,
   Code, 
   PenTool, 
   Megaphone, 
@@ -20,7 +19,6 @@ import {
   Image, 
   BookOpen,
   Briefcase,
-  Heart,
   TrendingUp
 } from "lucide-react";
 
@@ -456,33 +454,9 @@ export function Templates() {
                           ))}
                         </div>
 
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Eye className="h-3 w-3" />
-                              {template.uses.toLocaleString()}
-                            </div>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleToggleLike(template.id);
-                              }}
-                              className="flex items-center gap-1 hover:text-foreground transition-colors"
-                            >
-                              <Heart 
-                                className={`h-3 w-3 ${
-                                  isTemplateLiked(template.id) 
-                                    ? "fill-red-500 text-red-500" 
-                                    : ""
-                                }`} 
-                              />
-                              {template.likes_count || 0}
-                            </button>
-                          </div>
-                          <Button size="sm" variant="default" onClick={() => handleUseTemplate(template)}>
-                            Use Template
-                          </Button>
-                        </div>
+                        <Button size="sm" variant="default" onClick={() => handleUseTemplate(template)} className="w-full">
+                          Use Template
+                        </Button>
                       </CardContent>
                     </Card>
                   );
@@ -648,33 +622,9 @@ export function Templates() {
                           ))}
                         </div>
 
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Eye className="h-3 w-3" />
-                              {template.uses.toLocaleString()}
-                            </div>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleToggleLike(template.id);
-                              }}
-                              className="flex items-center gap-1 hover:text-foreground transition-colors"
-                            >
-                              <Heart 
-                                className={`h-3 w-3 ${
-                                  isTemplateLiked(template.id) 
-                                    ? "fill-red-500 text-red-500" 
-                                    : ""
-                                }`} 
-                              />
-                              {template.likes_count || 0}
-                            </button>
-                          </div>
-                          <Button size="sm" variant="default" onClick={() => handleUseTemplate(template)}>
-                            Use Template
-                          </Button>
-                        </div>
+                        <Button size="sm" variant="default" onClick={() => handleUseTemplate(template)} className="w-full">
+                          Use Template
+                        </Button>
                       </CardContent>
                     </Card>
                   );
