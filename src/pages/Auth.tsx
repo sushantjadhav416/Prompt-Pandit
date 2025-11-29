@@ -210,6 +210,20 @@ export function Auth() {
 
     try {
       const validated = resetPasswordSchema.parse({ email: resetEmail });
+
+      // Check if user with this email exists
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("email", validated.email)
+        .maybeSingle();
+
+      if (!existingProfile) {
+        setError("No account found with this email address");
+        setLoading(false);
+        return;
+      }
+
       const redirectUrl = `${window.location.origin}/auth`;
 
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(
