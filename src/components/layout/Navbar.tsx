@@ -72,7 +72,7 @@ export function Navbar() {
             <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
               <Wand2 className="h-6 w-6 text-primary" />
             </div>
-            <span className="text-xl font-bold gradient-text">PromptSmith</span>
+            <span className="text-xl font-bold gradient-text">PromptPandit</span>
           </Link>
 
           {/* Desktop Navigation */}

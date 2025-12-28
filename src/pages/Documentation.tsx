@@ -7,9 +7,9 @@ export function Documentation() {
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">PromptSmith Documentation</h1>
+          <h1 className="text-4xl font-bold mb-4">PromptPandit Documentation</h1>
           <p className="text-xl text-muted-foreground">
-            Complete guide to using PromptSmith effectively
+            Complete guide to using PromptPandit effectively
           </p>
         </div>
 
@@ -19,7 +19,7 @@ export function Documentation() {
             <CardHeader>
               <CardTitle>Getting Started</CardTitle>
               <CardDescription>
-                Learn how to start using PromptSmith
+                Learn how to start using PromptPandit
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -33,7 +33,7 @@ export function Documentation() {
               <div>
                 <h3 className="font-semibold mb-2">2. Choose Your Tool</h3>
                 <p className="text-muted-foreground">
-                  PromptSmith offers three main tools: Prompt Wizard, Templates, and Prompt Rewriter. Select the one that best fits your needs.
+                  PromptPandit offers three main tools: Prompt Wizard, Templates, and Prompt Rewriter. Select the one that best fits your needs.
                 </p>
               </div>
             </CardContent>
@@ -231,7 +231,7 @@ export function Documentation() {
             <CardHeader>
               <CardTitle>Best Practices</CardTitle>
               <CardDescription>
-                Tips for getting the most out of PromptSmith
+                Tips for getting the most out of PromptPandit
               </CardDescription>
             </CardHeader>
             <CardContent>

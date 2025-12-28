@@ -148,7 +148,7 @@ export function Auth() {
       if (data.user) {
         toast({
           title: "Account created successfully!",
-          description: "Welcome to PromptSmith",
+          description: "Welcome to PromptPandit",
         });
         // Auto-confirm is enabled, user will be redirected automatically
       }
@@ -432,7 +432,7 @@ export function Auth() {
               <Sparkles className="w-8 h-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">PromptSmith</CardTitle>
+          <CardTitle className="text-2xl font-bold">PromptPandit</CardTitle>
           <CardDescription>
             Create powerful AI prompts with ease
           </CardDescription>
