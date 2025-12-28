@@ -13,6 +13,7 @@ import { Auth } from "./pages/Auth";
 import { MyPrompts } from "./pages/MyPrompts";
 import { Documentation } from "./pages/Documentation";
 import { Guides } from "./pages/Guides";
+import { AdminTemplates } from "./pages/AdminTemplates";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
               <Route path="/rewriter" element={<ProtectedRoute><PromptRewriter /></ProtectedRoute>} />
               <Route path="/my-prompts" element={<ProtectedRoute><MyPrompts /></ProtectedRoute>} />
+              <Route path="/admin/templates" element={<ProtectedRoute><AdminTemplates /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
