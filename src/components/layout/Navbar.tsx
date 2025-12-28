@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -64,7 +65,7 @@ export function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-border">
+    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -92,8 +93,9 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* Auth Section */}
-          <div className="hidden md:flex items-center space-x-4">
+          {/* Theme Toggle & Auth Section */}
+          <div className="hidden md:flex items-center space-x-2">
+            <ThemeToggle />
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -147,7 +149,7 @@ export function Navbar() {
 
       {/* Mobile Navigation */}
       {isOpen && (
-        <div className="md:hidden border-t border-border bg-white">
+        <div className="md:hidden border-t border-border bg-background">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navigation.map((item) => (
               <Link
@@ -164,6 +166,10 @@ export function Navbar() {
               </Link>
             ))}
             <div className="pt-4 pb-2 px-3 space-y-2">
+              <div className="flex items-center justify-between px-3 py-2">
+                <span className="text-sm font-medium">Theme</span>
+                <ThemeToggle />
+              </div>
               {user ? (
                 <>
                   <div className="px-3 py-2 text-sm">
