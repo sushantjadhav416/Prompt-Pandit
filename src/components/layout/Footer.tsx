@@ -30,7 +30,7 @@ export function Footer() {
               <div className="p-2 rounded-lg bg-primary/10">
                 <Wand2 className="h-6 w-6 text-primary" />
               </div>
-              <span className="text-xl font-bold gradient-text">PromptSmith</span>
+              <span className="text-xl font-bold gradient-text">PromptPandit</span>
             </Link>
             <p className="text-muted-foreground text-sm max-w-xs">
               Craft perfect AI prompts with our intelligent writing agent. 
@@ -103,7 +103,7 @@ export function Footer() {
               ))}
             </div>
             <p className="text-xs text-muted-foreground flex items-center">
-              Made with <Heart className="h-3 w-3 mx-1 text-red-500" /> by PromptSmith
+              Made with <Heart className="h-3 w-3 mx-1 text-red-500" /> by PromptPandit
             </p>
           </div>
         </div>

@@ -245,7 +245,7 @@ export function Guides() {
                 <li>Be explicit about what you don't want to avoid unwanted outputs</li>
                 <li>Test prompts across different scenarios to ensure consistency</li>
                 <li>Use system messages to set persistent behavior across conversations</li>
-                <li>Leverage the PromptSmith tools to structure and optimize your prompts</li>
+                <li>Leverage the PromptPandit tools to structure and optimize your prompts</li>
                 <li>Keep a library of successful prompts for future reference</li>
                 <li>Study and adapt prompts from the community and resources above</li>
               </ul>

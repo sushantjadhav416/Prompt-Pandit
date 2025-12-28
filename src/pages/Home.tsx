@@ -148,7 +148,7 @@ export function Home() {
               Ready to Create Amazing Prompts?
             </h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join thousands of creators, developers, and marketers who trust PromptSmith 
+              Join thousands of creators, developers, and marketers who trust PromptPandit 
               to craft their perfect AI prompts.
             </p>
             
