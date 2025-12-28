@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Home } from "./pages/Home";
@@ -19,27 +20,29 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <Toaster />
-    <Sonner />
-    <BrowserRouter>
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/documentation" element={<Documentation />} />
-            <Route path="/guides" element={<Guides />} />
-            <Route path="/wizard" element={<ProtectedRoute><PromptWizard /></ProtectedRoute>} />
-            <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
-            <Route path="/rewriter" element={<ProtectedRoute><PromptRewriter /></ProtectedRoute>} />
-            <Route path="/my-prompts" element={<ProtectedRoute><MyPrompts /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </BrowserRouter>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <div className="min-h-screen flex flex-col bg-background text-foreground">
+          <Navbar />
+          <main className="flex-1">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/documentation" element={<Documentation />} />
+              <Route path="/guides" element={<Guides />} />
+              <Route path="/wizard" element={<ProtectedRoute><PromptWizard /></ProtectedRoute>} />
+              <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
+              <Route path="/rewriter" element={<ProtectedRoute><PromptRewriter /></ProtectedRoute>} />
+              <Route path="/my-prompts" element={<ProtectedRoute><MyPrompts /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </BrowserRouter>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
