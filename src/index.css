@@ -15,6 +15,10 @@
     --card-foreground: 222 25% 12%;
     --card-hover: 240 9% 98%;
     
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 25% 12%;
+    
     /* AI Theme - Purple/Indigo Palette */
     --primary: 253 91% 65%;
     --primary-foreground: 0 0% 100%;
