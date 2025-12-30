@@ -135,32 +135,99 @@ export function PromptWizard() {
 
   const generatePrompt = async () => {
     setIsGenerating(true);
+    setGeneratedPrompt(""); // Clear previous prompt
     
     try {
-      const { data, error } = await supabase.functions.invoke("generate-prompt", {
-        body: {
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-prompt`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
+        },
+        body: JSON.stringify({
           goal: wizardData.goal,
           context: wizardData.context,
           audience: wizardData.audience,
           outputType: wizardData.outputType,
           aiModel: wizardData.model,
           tone: wizardData.tone,
-          length: wizardData.length
-        }
+          length: wizardData.length,
+          stream: true
+        })
       });
 
-      if (error) {
-        console.error("Error generating prompt:", error);
-        toast({
-          title: "Error",
-          description: error.message || "Failed to generate prompt. Please try again.",
-          variant: "destructive"
-        });
-        return;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate prompt");
       }
 
-      if (data?.prompt) {
-        setGeneratedPrompt(data.prompt);
+      if (!response.body) {
+        throw new Error("No response body");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+      let promptContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        textBuffer += decoder.decode(value, { stream: true });
+
+        // Process line-by-line as data arrives
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              promptContent += content;
+              setGeneratedPrompt(promptContent);
+            }
+          } catch {
+            // Incomplete JSON, put back and wait for more data
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+
+      // Process any remaining buffer
+      if (textBuffer.trim()) {
+        for (let raw of textBuffer.split("\n")) {
+          if (!raw) continue;
+          if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+          if (raw.startsWith(":") || raw.trim() === "") continue;
+          if (!raw.startsWith("data: ")) continue;
+          const jsonStr = raw.slice(6).trim();
+          if (jsonStr === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              promptContent += content;
+              setGeneratedPrompt(promptContent);
+            }
+          } catch { /* ignore partial leftovers */ }
+        }
+      }
+
+      if (promptContent) {
         toast({
           title: "Success!",
           description: "Your optimized prompt has been generated."
@@ -170,7 +237,7 @@ export function PromptWizard() {
       console.error("Error:", err);
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        description: err instanceof Error ? err.message : "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
     } finally {
