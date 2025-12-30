@@ -564,7 +564,12 @@ export function PromptWizard() {
                 <div className="relative">
                   <div className="p-6 rounded-lg bg-muted/50 border-2 border-primary/20">
                     <div className="prose prose-sm max-w-none">
-                      <p className="text-foreground whitespace-pre-wrap">{generatedPrompt}</p>
+                      <p className="text-foreground whitespace-pre-wrap">
+                        {generatedPrompt}
+                        {isGenerating && (
+                          <span className="inline-block w-0.5 h-5 bg-primary ml-0.5 align-middle animate-blink" />
+                        )}
+                      </p>
                     </div>
                   </div>
                 </div>

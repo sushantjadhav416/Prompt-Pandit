@@ -117,6 +117,10 @@ export default {
 				'bounce-gentle': {
 					'0%, 100%': { transform: 'translateY(0)' },
 					'50%': { transform: 'translateY(-4px)' }
+				},
+				'blink': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0' }
 				}
 			},
 			animation: {
@@ -125,7 +129,8 @@ export default {
 				'fade-in': 'fade-in 0.6s ease-out',
 				'slide-up': 'slide-up 0.6s ease-out',
 				'scale-in': 'scale-in 0.4s ease-out',
-				'bounce-gentle': 'bounce-gentle 2s ease-in-out infinite'
+				'bounce-gentle': 'bounce-gentle 2s ease-in-out infinite',
+				'blink': 'blink 1s step-end infinite'
 			}
 		}
 	},
