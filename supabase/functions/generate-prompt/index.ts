@@ -49,6 +49,10 @@ serve(async (req) => {
     }
 
     const requestData = await req.json();
+    
+    // Check if streaming is requested
+    const useStreaming = requestData.stream === true;
+    
     const validationErrors = validateInput(requestData);
     
     if (validationErrors.length > 0) {
@@ -65,7 +69,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Generating prompt with params:", { goal, context, audience, outputType, aiModel, tone, length });
+    console.log("Generating prompt with params:", { goal, context, audience, outputType, aiModel, tone, length, streaming: useStreaming });
 
     // Build the system prompt for generating the optimized prompt
     const systemPrompt = `You are an expert AI prompt engineer. Your task is to generate highly optimized, effective prompts based on user requirements. 
@@ -105,6 +109,7 @@ Create a complete, ready-to-use prompt that incorporates all these elements effe
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
+        stream: useStreaming,
       }),
     });
 
@@ -128,6 +133,20 @@ Create a complete, ready-to-use prompt that incorporates all these elements effe
       );
     }
 
+    // Handle streaming response
+    if (useStreaming) {
+      console.log("Streaming response to client");
+      return new Response(response.body, {
+        headers: { 
+          ...corsHeaders, 
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive"
+        },
+      });
+    }
+
+    // Handle non-streaming response (fallback)
     const data = await response.json();
     const generatedPrompt = data.choices[0].message.content;
 
