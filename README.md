@@ -15,7 +15,7 @@ Instead of guessing *how to talk to AI*, PromptSmith acts as a **Prompt Writing 
 - The focus is on **intent → structure → refinement**
 - The developer guides the system with **clear mental models**, feedback loops, and iteration
 
-PromptSmith is both:
+PromptPandit is both:
 - a **product built using Vibe Coding**, and  
 - a **tool that teaches better Vibe Coding through better prompts**
 
