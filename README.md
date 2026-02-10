@@ -1,7 +1,7 @@
 # 🚀 PromptPandit
 ### Gen-AI Based Smart Prompt Builder Application
 
-PromptSmith is a **GenAI-powered prompt engineering application** built using **Vibe Coding principles**.  
+PromptPandit is a **GenAI-powered prompt engineering application** built using **Vibe Coding principles**.  
 It helps users transform vague ideas into **clear, structured, high-quality prompts** optimized for Large Language Models (LLMs) such as **GPT-4, Claude, Gemini, DALLE**, and more.
 
 Instead of guessing *how to talk to AI*, PromptSmith acts as a **Prompt Writing Agent** that understands intent, context, constraints, and output style—then generates prompts that actually work.
