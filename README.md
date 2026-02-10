@@ -1,73 +1,126 @@
-# Welcome to your Lovable project
+# 🚀 PromptSmith  
+### Gen-AI Based Smart Prompt Builder Application
 
-## Project info
+PromptSmith is a **GenAI-powered prompt engineering application** built using **Vibe Coding principles**.  
+It helps users transform vague ideas into **clear, structured, high-quality prompts** optimized for Large Language Models (LLMs) such as **GPT-4, Claude, Gemini, DALLE**, and more.
 
-**URL**: https://lovable.dev/projects/65b4cd25-1f9c-4468-8f61-cd212eaf0823
+Instead of guessing *how to talk to AI*, PromptSmith acts as a **Prompt Writing Agent** that understands intent, context, constraints, and output style—then generates prompts that actually work.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🧠 What Is Vibe Coding?
 
-**Use Lovable**
+**Vibe Coding** is a modern development approach where:
+- AI is used as a **thinking partner**, not just a code generator
+- The focus is on **intent → structure → refinement**
+- The developer guides the system with **clear mental models**, feedback loops, and iteration
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/65b4cd25-1f9c-4468-8f61-cd212eaf0823) and start prompting.
+PromptSmith is both:
+- a **product built using Vibe Coding**, and  
+- a **tool that teaches better Vibe Coding through better prompts**
 
-Changes made via Lovable will be committed automatically to this repo.
+---
 
-**Use your preferred IDE**
+## 🎯 Core Objectives
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- Convert vague user intent into precise, actionable prompts  
+- Generate multiple prompt styles (Instructional, Role-based, Few-shot, Chain-of-Thought)  
+- Optimize prompts for different models and use cases  
+- Explain *why* a prompt structure was chosen  
+- Improve prompt quality using user feedback  
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+---
 
-Follow these steps:
+## 🧩 Key Features
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### 🧭 Prompt Wizard
+Guided flow asking:
+- Goal
+- Target audience
+- Output type
+- Preferred LLM
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 📄 Prompt Generator Output
+- Final optimized prompt  
+- Prompt type  
+- Explanation  
+- Optional preview  
 
-# Step 3: Install the necessary dependencies.
-npm i
+### ✍️ Prompt Templates Library
+Categories:
+- Writing & Blogging  
+- Code Generation  
+- Research  
+- Marketing  
+- UI/UX  
+- Image Generation  
+- Prompt Engineering  
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### 🤖 Prompt Rewriting Agent
+Improve prompts by adding clarity, context, roles, and constraints.
+
+### 🧠 Feedback Loop
+User ratings used for prompt optimization.
+
+### 🔐 Export Options
+Copy, Markdown, Notion, PDF, LangChain sync.
+
+---
+
+## 🏗️ Tech Stack
+
+Frontend: React + TailwindCSS  
+Backend: Node.js / FastAPI  
+LLMs: OpenAI, Claude, Cohere  
+DB: MongoDB / PostgreSQL  
+Deployment: Vercel / Render  
+
+---
+
+## 🧱 UI Structure
+
+- HomePage  
+- PromptWizard  
+- PromptOutput  
+- PromptTemplates  
+- PromptRewriter  
+- MyPrompts  
+
+---
+
+## 💡 Example Use Case
+
+**User Goal:** SaaS landing page hero copy
+
+**Prompt Generated:**
+```
+Act as a professional SaaS copywriter.
+Write a short, engaging hero section headline and subheading
+for a productivity tool targeting remote teams.
+Emphasize simplicity, collaboration, and time-saving.
+Avoid technical jargon.
 ```
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🧪 Prompt Agent Flow
 
-**Use GitHub Codespaces**
+1. InputParser  
+2. TemplateSelector  
+3. PromptGenerator  
+4. PromptExplainer  
+5. Formatter  
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## 🔮 Future Enhancements
 
-This project is built with:
+- Voice-to-Prompt  
+- Chrome Extension  
+- Output Evaluation  
+- Personalized styles  
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/65b4cd25-1f9c-4468-8f61-cd212eaf0823) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 📄 License
+MIT
