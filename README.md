@@ -114,7 +114,4 @@ Avoid technical jargon.
 - Output Evaluation  
 - Personalized styles  
 
----
 
-## 📄 License
-MIT
