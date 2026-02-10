@@ -68,7 +68,7 @@ User ratings used for prompt optimization.
 
 - Frontend: Typescript + React + TailwindCSS  
 - Backend: Supabase 
-- LLMs: OpenAI, Claude, Cohere  
+- LLMs: Gemini 
 ---
 
 ## 🧱 UI Structure
