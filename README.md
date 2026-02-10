@@ -66,9 +66,9 @@ User ratings used for prompt optimization.
 
 ## 🏗️ Tech Stack
 
-Frontend: Typescript + React + TailwindCSS  
-Backend: Supabase 
-LLMs: OpenAI, Claude, Cohere  
+- Frontend: Typescript + React + TailwindCSS  
+- Backend: Supabase 
+- LLMs: OpenAI, Claude, Cohere  
 ---
 
 ## 🧱 UI Structure
