@@ -62,19 +62,13 @@ Improve prompts by adding clarity, context, roles, and constraints.
 ### 🧠 Feedback Loop
 User ratings used for prompt optimization.
 
-### 🔐 Export Options
-Copy, Markdown, Notion, PDF, LangChain sync.
-
 ---
 
 ## 🏗️ Tech Stack
 
-Frontend: React + TailwindCSS  
-Backend: Node.js / FastAPI  
+Frontend: Typescript + React + TailwindCSS  
+Backend: Supabase 
 LLMs: OpenAI, Claude, Cohere  
-DB: MongoDB / PostgreSQL  
-Deployment: Vercel / Render  
-
 ---
 
 ## 🧱 UI Structure
@@ -105,11 +99,11 @@ Avoid technical jargon.
 
 ## 🧪 Prompt Agent Flow
 
-1. InputParser  
-2. TemplateSelector  
-3. PromptGenerator  
-4. PromptExplainer  
-5. Formatter  
+1. Define Goa : What do you want to achieve?
+2. Set Context : Provide background information
+3. Target Audience : Who is this for?
+4. Output & Model  : Format and AI mode
+5. Review & Generate : Finalize your prompt
 
 ---
 
