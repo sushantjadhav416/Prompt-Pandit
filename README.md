@@ -1,4 +1,4 @@
-# 🚀 PromptSmith  
+# 🚀 PromptPandit
 ### Gen-AI Based Smart Prompt Builder Application
 
 PromptSmith is a **GenAI-powered prompt engineering application** built using **Vibe Coding principles**.  
